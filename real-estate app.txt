@@ -1,0 +1,146 @@
+import React, { useState, useEffect } from "react";
+import { motion } from "framer-motion";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
+import { Input } from "@/components/ui/input";
+import { Pagination } from "@/components/ui/pagination";
+
+const Sidebar = ({ setActiveSection }) => (
+  <div className="p-4 bg-gray-100 w-60 h-full">
+    <h2 className="text-lg font-bold mb-4">Menu</h2>
+    <Button
+      variant="outline"
+      onClick={() => setActiveSection("dashboard")}
+      className="mb-2"
+    >
+      Dashboard
+    </Button>
+    <Button
+      variant="outline"
+      onClick={() => setActiveSection("properties")}
+    >
+      Property Listings
+    </Button>
+  </div>
+);
+
+const Dashboard = () => (
+  <div className="p-6">
+    <h2 className="text-2xl font-bold mb-4">Dashboard</h2>
+    <div className="grid grid-cols-2 gap-4">
+      <Card>
+        <CardContent>
+          <h3 className="text-xl font-semibold">Total Sales</h3>
+          <p className="text-gray-600">$20,000</p>
+        </CardContent>
+      </Card>
+      <Card>
+        <CardContent>
+          <h3 className="text-xl font-semibold">Monthly Visitors</h3>
+          <p className="text-gray-600">15,000</p>
+        </CardContent>
+      </Card>
+    </div>
+  </div>
+);
+
+const PropertyListings = ({ properties }) => {
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filteredProperties, setFilteredProperties] = useState(properties);
+  const [currentPage, setCurrentPage] = useState(1);
+  const propertiesPerPage = 2;
+
+  useEffect(() => {
+    setFilteredProperties(
+      properties.filter(
+        (property) =>
+          property.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          property.location.toLowerCase().includes(searchTerm.toLowerCase())
+      )
+    );
+  }, [searchTerm, properties]);
+
+  const indexOfLastProperty = currentPage * propertiesPerPage;
+  const indexOfFirstProperty = indexOfLastProperty - propertiesPerPage;
+  const currentProperties = filteredProperties.slice(
+    indexOfFirstProperty,
+    indexOfLastProperty
+  );
+
+  return (
+    <div className="p-6">
+      <h2 className="text-2xl font-bold mb-4">Property Listings</h2>
+      <Input
+        placeholder="Search properties..."
+        value={searchTerm}
+        onChange={(e) => setSearchTerm(e.target.value)}
+        className="mb-4"
+      />
+      <div className="overflow-auto h-96">
+        {currentProperties.map((property, index) => (
+          <motion.div
+            key={index}
+            className="mb-4"
+            whileHover={{ scale: 1.05 }}
+            transition={{ duration: 0.3 }}
+          >
+            <Card>
+              <CardContent>
+                <img
+                  src={property.image}
+                  alt={property.name}
+                  className="rounded-xl mb-2"
+                />
+                <h3 className="text-xl font-semibold">{property.name}</h3>
+                <p className="text-gray-600">Location: {property.location}</p>
+                <p className="text-gray-600">Price: ${property.price}</p>
+              </CardContent>
+            </Card>
+          </motion.div>
+        ))}
+      </div>
+      <Pagination
+        total={filteredProperties.length}
+        pageSize={propertiesPerPage}
+        current={currentPage}
+        onChange={(page) => setCurrentPage(page)}
+        className="mt-4"
+      />
+    </div>
+  );
+};
+
+const App = () => {
+  const [activeSection, setActiveSection] = useState("dashboard");
+  const [darkMode, setDarkMode] = useState(false);
+
+  const properties = [
+    { name: "Luxury Villa", price: 500000, location: "California", image: "https://via.placeholder.com/150" },
+    { name: "City Apartment", price: 300000, location: "New York", image: "https://via.placeholder.com/150" },
+    { name: "Beach House", price: 800000, location: "Florida", image: "https://via.placeholder.com/150" },
+    { name: "Mountain Cabin", price: 600000, location: "Colorado", image: "https://via.placeholder.com/150" },
+    { name: "Suburban Home", price: 400000, location: "Texas", image: "https://via.placeholder.com/150" },
+  ];
+
+  return (
+    <div className={darkMode ? "bg-gray-900 text-white" : "bg-white text-black"}>
+      <div className="flex h-screen">
+        <Sidebar setActiveSection={setActiveSection} />
+        <main className="flex-1">
+          <div className="flex justify-between items-center p-4 border-b border-gray-300">
+            <h1 className="text-xl font-bold">Dynamic React Dashboard</h1>
+            <div className="flex items-center">
+              <span className="mr-2">Dark Mode</span>
+              <Switch checked={darkMode} onCheckedChange={setDarkMode} />
+            </div>
+          </div>
+          {activeSection === "dashboard" && <Dashboard />}
+          {activeSection === "properties" && <PropertyListings properties={properties} />}
+        </main>
+      </div>
+    </div>
+  );
+};
+
+export default App;
